@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPL Draft AI — Season 17</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── Site Header ── -->
+  <header class="site-header">
+    <div class="header-logo">
+      <span class="logo-badge">MPL PH</span>
+      <span class="logo-text">Draft<span>AI</span></span>
+    </div>
+    <span class="header-meta">Season 17 · Regular Season Meta</span>
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="btn-reset-draft">↺ New Draft</button>
+      <button class="btn btn-ghost btn-sm" id="btn-settings">⚙ API Key</button>
+    </div>
+  </header>
+
+  <!-- ── API Key Modal ── -->
+  <div class="modal-overlay" id="modal-api-key">
+    <div class="modal">
+      <div class="modal-title">🔑 Anthropic API Key</div>
+      <p class="modal-subtitle">
+        Enter your Anthropic API key to enable AI-powered draft suggestions.<br>
+        Your key is stored only in <code>sessionStorage</code> and never leaves your browser.
+        Get yours at <a href="https://console.anthropic.com" target="_blank" style="color:var(--blue-glow)">console.anthropic.com</a>.
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="api-key-input">API Key</label>
+        <input
+          id="api-key-input"
+          class="form-input"
+          type="password"
+          placeholder="sk-ant-api..."
+          autocomplete="off"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btn-skip-api">Skip (No AI)</button>
+        <button class="btn btn-gold" id="btn-save-api">Save & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Setup Screen ── -->
+  <div class="setup-screen" id="setup-screen">
+    <h1 class="setup-title">MPL PH <span>Draft AI</span></h1>
+    <p class="setup-subtitle">
+      AI-assisted Mobile Legends drafting tool trained on MPL PH Season 17 meta data.
+      Pick your teams and let the AI guide your picks and bans.
+    </p>
+    <div class="teams-setup">
+      <div class="team-setup-card blue">
+        <div class="team-setup-label">🔵 Blue Side</div>
+        <select class="team-select" id="select-blue-team">
+          <option value="Blue Side">Blue Side (Custom)</option>
+          <option value="Team Liquid PH">Team Liquid PH</option>
+          <option value="Twisted Mind PH">Twisted Mind PH</option>
+          <option value="AP Bren">AP Bren</option>
+          <option value="Rebellion Zephyr">Rebellion Zephyr</option>
+          <option value="Oh My God">Oh My God</option>
+          <option value="TNC Pro Team">TNC Pro Team</option>
+          <option value="Omega Esports PH">Omega Esports PH</option>
+          <option value="Falcon Esports PH">Falcon Esports PH</option>
+        </select>
+      </div>
+      <div class="team-setup-card red">
+        <div class="team-setup-label">🔴 Red Side</div>
+        <select class="team-select" id="select-red-team">
+          <option value="Red Side">Red Side (Custom)</option>
+          <option value="AP Bren">AP Bren</option>
+          <option value="Team Liquid PH">Team Liquid PH</option>
+          <option value="Twisted Mind PH">Twisted Mind PH</option>
+          <option value="Rebellion Zephyr">Rebellion Zephyr</option>
+          <option value="Oh My God">Oh My God</option>
+          <option value="TNC Pro Team">TNC Pro Team</option>
+          <option value="Omega Esports PH">Omega Esports PH</option>
+          <option value="Falcon Esports PH">Falcon Esports PH</option>
+        </select>
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button class="btn btn-primary btn-lg" id="btn-start-draft">
+        ⚔ Begin Draft
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Draft Screen ── -->
+  <div class="draft-container hidden" id="draft-container">
+
+    <!-- Phase Bar -->
+    <div class="phase-bar">
+      <span class="phase-label" id="phase-label">Phase 1 — Blue Side Ban</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+      <div class="phase-controls">
+        <button class="btn btn-ghost btn-sm" id="btn-undo">↩ Undo</button>
+        <button class="btn btn-gold btn-sm" id="btn-analyze" disabled>📊 Analyze Draft</button>
+      </div>
+    </div>
+
+    <!-- Blue Team Panel -->
+    <div class="team-panel blue-panel" id="blue-panel">
+      <div class="panel-team-name" id="blue-team-name">Blue Side</div>
+
+      <div class="section-label">Bans</div>
+      <div class="bans-row" id="blue-bans-row">
+        <div class="ban-slot" id="blue-ban-0"><span class="hero-mini-name">—</span></div>
+        <div class="ban-slot" id="blue-ban-1"><span class="hero-mini-name">—</span></div>
+        <div class="ban-slot" id="blue-ban-2"><span class="hero-mini-name">—</span></div>
+        <div class="ban-slot" id="blue-ban-3"><span class="hero-mini-name">—</span></div>
+      </div>
+
+      <div class="section-label">Picks</div>
+      <div class="picks-list" id="blue-picks-list">
+        <div class="pick-slot" id="blue-pick-0"><span class="empty-pick-label">Pick 1</span><span class="pick-slot-num">#1</span></div>
+        <div class="pick-slot" id="blue-pick-1"><span class="empty-pick-label">Pick 2</span><span class="pick-slot-num">#2</span></div>
+        <div class="pick-slot" id="blue-pick-2"><span class="empty-pick-label">Pick 3</span><span class="pick-slot-num">#3</span></div>
+        <div class="pick-slot" id="blue-pick-3"><span class="empty-pick-label">Pick 4</span><span class="pick-slot-num">#4</span></div>
+        <div class="pick-slot" id="blue-pick-4"><span class="empty-pick-label">Pick 5</span><span class="pick-slot-num">#5</span></div>
+      </div>
+    </div>
+
+    <!-- Hero Grid Panel -->
+    <div class="hero-panel">
+      <div class="hero-panel-top">
+        <input
+          class="search-input"
+          id="hero-search"
+          type="search"
+          placeholder="Search hero..."
+        />
+        <div class="role-filters" id="role-filters">
+          <button class="role-btn active" data-role="all">All</button>
+          <button class="role-btn" data-role="tank">Tank</button>
+          <button class="role-btn" data-role="fighter">Fighter</button>
+          <button class="role-btn" data-role="assassin">Assassin</button>
+          <button class="role-btn" data-role="mage">Mage</button>
+          <button class="role-btn" data-role="marksman">MM</button>
+          <button class="role-btn" data-role="support">Support</button>
+        </div>
+      </div>
+      <div class="hero-grid-scroll">
+        <div class="hero-grid" id="hero-grid"></div>
+      </div>
+    </div>
+
+    <!-- Red Team Panel -->
+    <div class="team-panel red-panel" id="red-panel">
+      <div class="panel-team-name" id="red-team-name">Red Side</div>
+
+      <div class="section-label">Bans</div>
+      <div class="bans-row" id="red-bans-row">
+        <div class="ban-slot" id="red-ban-0"><span class="hero-mini-name">—</span></div>
+        <div class="ban-slot" id="red-ban-1"><span class="hero-mini-name">—</span></div>
+        <div class="ban-slot" id="red-ban-2"><span class="hero-mini-name">—</span></div>
+        <div class="ban-slot" id="red-ban-3"><span class="hero-mini-name">—</span></div>
+      </div>
+
+      <div class="section-label">Picks</div>
+      <div class="picks-list" id="red-picks-list">
+        <div class="pick-slot" id="red-pick-0"><span class="empty-pick-label">Pick 1</span><span class="pick-slot-num">#1</span></div>
+        <div class="pick-slot" id="red-pick-1"><span class="empty-pick-label">Pick 2</span><span class="pick-slot-num">#2</span></div>
+        <div class="pick-slot" id="red-pick-2"><span class="empty-pick-label">Pick 3</span><span class="pick-slot-num">#3</span></div>
+        <div class="pick-slot" id="red-pick-3"><span class="empty-pick-label">Pick 4</span><span class="pick-slot-num">#4</span></div>
+        <div class="pick-slot" id="red-pick-4"><span class="empty-pick-label">Pick 5</span><span class="pick-slot-num">#5</span></div>
+      </div>
+    </div>
+
+    <!-- AI Suggestion Bar -->
+    <div class="ai-sidebar" id="ai-sidebar">
+      <div class="ai-label">
+        <div class="ai-dot"></div>
+        AI ANALYST
+      </div>
+      <div class="ai-content">
+        <div class="ai-idle" id="ai-idle">Configure your API key to receive AI-powered draft suggestions based on MPL S17 meta.</div>
+        <div class="ai-loading hidden" id="ai-loading">
+          <div class="ai-spinner"></div>
+          Analyzing MPL S17 meta...
+        </div>
+        <div class="hidden" id="ai-result">
+          <div class="ai-suggestion-hero">
+            <span class="ai-hero-name" id="ai-hero-name">—</span>
+            <span class="ai-threat-badge" id="ai-threat-badge"></span>
+          </div>
+          <div class="ai-reasoning" id="ai-reasoning"></div>
+          <div class="ai-alternatives">
+            <span class="ai-alt-label">Alt:</span>
+            <span class="ai-alt-hero" id="ai-alt-1"></span>
+            <span class="ai-alt-hero" id="ai-alt-2"></span>
+          </div>
+        </div>
+        <div class="ai-error hidden" id="ai-error"></div>
+      </div>
+      <div class="ai-actions">
+        <button class="btn btn-gold btn-sm" id="btn-ai-suggest" disabled>✨ Suggest</button>
+        <button class="btn btn-ghost btn-sm" id="btn-ai-auto" disabled>⚡ Auto-Draft</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Analysis Modal ── -->
+  <div class="modal-overlay hidden" id="modal-analysis">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-title">📊 Draft Analysis</div>
+      <div id="analysis-loading" class="ai-loading" style="padding:2rem 0">
+        <div class="ai-spinner"></div>
+        Analyzing draft matchup...
+      </div>
+      <div class="analysis-grid hidden" id="analysis-content"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btn-close-analysis">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tooltip ── -->
+  <div class="tooltip" id="hero-tooltip">
+    <div class="tooltip-hero-name" id="tip-name"></div>
+    <div class="tooltip-role" id="tip-role"></div>
+    <div class="tooltip-stats">
+      <div class="tooltip-stat">
+        <div class="tooltip-stat-value" id="tip-pick"></div>
+        <div class="tooltip-stat-label">Pick %</div>
+      </div>
+      <div class="tooltip-stat">
+        <div class="tooltip-stat-value" id="tip-ban"></div>
+        <div class="tooltip-stat-label">Ban %</div>
+      </div>
+      <div class="tooltip-stat">
+        <div class="tooltip-stat-value" id="tip-win"></div>
+        <div class="tooltip-stat-label">Win %</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast Container ── -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
